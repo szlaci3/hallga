@@ -1,15 +1,17 @@
 import { useEffect, useState } from 'react';
-import { listDocuments } from '../db';
-import type { HallgaDocument } from '../types';
+import { listDocuments, listFolders } from '../db';
+import type { HallgaDocument, HallgaFolder } from '../types';
 
 type DocumentsState = {
   documents: HallgaDocument[];
+  folders: HallgaFolder[];
   loading: boolean;
 };
 
-export function useDocuments(refreshKey = 0) {
+export function useDocuments(refreshKey = 0, folderId?: number) {
   const [state, setState] = useState<DocumentsState>({
     documents: [],
+    folders: [],
     loading: true,
   });
 
@@ -17,10 +19,10 @@ export function useDocuments(refreshKey = 0) {
     let cancelled = false;
 
     async function loadDocuments() {
-      const documents = await listDocuments();
+      const [documents, folders] = await Promise.all([listDocuments(folderId), listFolders(folderId)]);
 
       if (!cancelled) {
-        setState({ documents, loading: false });
+        setState({ documents, folders, loading: false });
       }
     }
 
@@ -29,7 +31,7 @@ export function useDocuments(refreshKey = 0) {
     return () => {
       cancelled = true;
     };
-  }, [refreshKey]);
+  }, [folderId, refreshKey]);
 
   return state;
 }

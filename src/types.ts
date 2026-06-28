@@ -5,4 +5,16 @@ export type HallgaDocument = {
   createdAt: number;
   updatedAt: number;
   pinned: boolean;
+  pinnedAt?: number;
+  folderId?: number;
+};
+
+export type HallgaFolder = {
+  id?: number;
+  name: string;
+  parentId?: number;
+  createdAt: number;
+  updatedAt: number;
+  pinned: boolean;
+  pinnedAt?: number;
 };
