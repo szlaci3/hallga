@@ -618,6 +618,10 @@ select {
   text-transform: uppercase;
 }
 
+.toc-mobile {
+  display: none;
+}
+
 .toc-list {
   display: grid;
   gap: 3px;
@@ -812,15 +816,85 @@ select {
 
   .reader-layout {
     display: grid;
+    grid-template-columns: minmax(0, 1fr);
     gap: 14px;
   }
 
   .reader-toc {
     position: static;
-    max-height: 260px;
+    max-height: none;
+    overflow: visible;
+    padding: 0;
+    background:
+      linear-gradient(145deg, rgb(151 219 255 / 0.1), rgb(255 255 255 / 0.035)),
+      rgb(7 8 10 / 0.72);
+  }
+
+  .toc-title-desktop,
+  .toc-list-desktop {
+    display: none;
+  }
+
+  .toc-mobile {
+    display: block;
+  }
+
+  .toc-mobile summary {
+    display: flex;
+    min-height: 46px;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 14px;
+    color: #dbeffc;
+    cursor: pointer;
+    font-size: 0.84rem;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    list-style: none;
+    text-transform: uppercase;
+  }
+
+  .toc-mobile summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .toc-mobile summary::after {
+    width: 8px;
+    height: 8px;
+    border-right: 2px solid currentColor;
+    border-bottom: 2px solid currentColor;
+    content: "";
+    transform: rotate(45deg) translateY(-2px);
+    transition: transform 140ms ease;
+  }
+
+  .toc-mobile[open] summary::after {
+    transform: rotate(225deg) translate(-2px, -2px);
+  }
+
+  .toc-mobile .toc-list {
+    max-height: min(52vh, 360px);
+    overflow: auto;
+    border-top: 1px solid rgb(151 219 255 / 0.18);
+    padding: 8px;
   }
 
   .toc-item a {
+    overflow-wrap: anywhere;
     white-space: normal;
+  }
+
+  .toc-level-2 a {
+    padding-left: 16px;
+  }
+
+  .toc-level-3 a {
+    padding-left: 24px;
+  }
+
+  .toc-level-4 a,
+  .toc-level-5 a,
+  .toc-level-6 a {
+    padding-left: 32px;
   }
 }

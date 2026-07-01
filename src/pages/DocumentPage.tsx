@@ -228,14 +228,24 @@ export function DocumentPage() {
         <div className="reader-layout">
           {tocItems.length > 0 ? (
             <nav className="reader-toc" aria-label="Table of contents">
-              <div className="toc-title">Contents</div>
-              <ol className="toc-list">
+              <div className="toc-title toc-title-desktop">Contents</div>
+              <ol className="toc-list toc-list-desktop">
                 {tocItems.map((item) => (
                   <li key={item.id} className={`toc-item toc-level-${item.level}`}>
                     <a href={`#${item.id}`}>{item.title}</a>
                   </li>
                 ))}
               </ol>
+              <details className="toc-mobile">
+                <summary>Contents</summary>
+                <ol className="toc-list">
+                  {tocItems.map((item) => (
+                    <li key={item.id} className={`toc-item toc-level-${item.level}`}>
+                      <a href={`#${item.id}`}>{item.title}</a>
+                    </li>
+                  ))}
+                </ol>
+              </details>
             </nav>
           ) : null}
           <article className="reader-content" aria-labelledby="document-title">
