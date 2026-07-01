@@ -1,1 +1,1 @@
-export const MAX_DOCUMENTS = 100;
+export const MAX_DOCUMENTS = Infinity;
