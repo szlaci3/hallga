@@ -2,6 +2,14 @@ import Dexie, { type Table } from 'dexie';
 import { MAX_DOCUMENTS } from './config';
 import type { HallgaDocument, HallgaFolder } from './types';
 
+export type HallgaBackup = {
+  app: 'hallga';
+  schemaVersion: 2;
+  exportedAt: string;
+  documents: HallgaDocument[];
+  folders: HallgaFolder[];
+};
+
 class HallgaDatabase extends Dexie {
   documents!: Table<HallgaDocument, number>;
   folders!: Table<HallgaFolder, number>;
@@ -147,6 +155,60 @@ export async function deleteFolder(id: number) {
   });
 }
 
+export async function exportDatabase(): Promise<HallgaBackup> {
+  const [documents, folders] = await Promise.all([db.documents.toArray(), db.folders.toArray()]);
+
+  return {
+    app: 'hallga',
+    schemaVersion: 2,
+    exportedAt: new Date().toISOString(),
+    documents,
+    folders,
+  };
+}
+
+export async function replaceDatabase(backup: unknown) {
+  const data = normalizeBackup(backup);
+
+  await db.transaction('rw', db.folders, db.documents, async () => {
+    await db.documents.clear();
+    await db.folders.clear();
+    await db.folders.bulkAdd(data.folders);
+    await db.documents.bulkAdd(data.documents);
+  });
+}
+
+export async function mergeDatabaseBackup(backup: unknown) {
+  const data = normalizeBackup(backup);
+  const folderIdMap = new Map<number, number>();
+  const orderedFolders = [...data.folders].sort((a, b) => Number(a.parentId !== undefined) - Number(b.parentId !== undefined));
+
+  await db.transaction('rw', db.folders, db.documents, async () => {
+    for (const folder of orderedFolders) {
+      const { id, ...folderData } = folder;
+      const nextId = await db.folders.add({
+        ...folderData,
+        parentId: folder.parentId === undefined ? undefined : folderIdMap.get(folder.parentId),
+      });
+
+      if (typeof id === 'number') {
+        folderIdMap.set(id, nextId);
+      }
+    }
+
+    await db.documents.bulkAdd(
+      data.documents.map((document) => {
+        const { id, ...documentData } = document;
+
+        return {
+          ...documentData,
+          folderId: document.folderId === undefined ? undefined : folderIdMap.get(document.folderId),
+        };
+      }),
+    );
+  });
+}
+
 function createTitle(content: string) {
   const words = content
     .replace(/[#*_>`~[\]()-]/g, ' ')
@@ -192,4 +254,64 @@ function sortPinnedFirst<T extends { pinned: boolean; pinnedAt?: number; created
   }
 
   return b.createdAt - a.createdAt;
+}
+
+function normalizeBackup(value: unknown): Pick<HallgaBackup, 'documents' | 'folders'> {
+  if (!isRecord(value) || !Array.isArray(value.documents) || !Array.isArray(value.folders)) {
+    throw new Error('Choose a Hallga database backup JSON file.');
+  }
+
+  return {
+    documents: value.documents.map(normalizeDocument),
+    folders: value.folders.map(normalizeFolder),
+  };
+}
+
+function normalizeDocument(value: unknown): HallgaDocument {
+  if (!isRecord(value) || typeof value.title !== 'string' || typeof value.content !== 'string') {
+    throw new Error('The backup contains an invalid document.');
+  }
+
+  return {
+    id: optionalNumber(value.id),
+    title: value.title,
+    content: value.content,
+    createdAt: requiredNumber(value.createdAt, 'document createdAt'),
+    updatedAt: requiredNumber(value.updatedAt, 'document updatedAt'),
+    pinned: Boolean(value.pinned),
+    pinnedAt: optionalNumber(value.pinnedAt),
+    folderId: optionalNumber(value.folderId),
+  };
+}
+
+function normalizeFolder(value: unknown): HallgaFolder {
+  if (!isRecord(value) || typeof value.name !== 'string') {
+    throw new Error('The backup contains an invalid folder.');
+  }
+
+  return {
+    id: optionalNumber(value.id),
+    name: value.name,
+    parentId: optionalNumber(value.parentId),
+    createdAt: requiredNumber(value.createdAt, 'folder createdAt'),
+    updatedAt: requiredNumber(value.updatedAt, 'folder updatedAt'),
+    pinned: Boolean(value.pinned),
+    pinnedAt: optionalNumber(value.pinnedAt),
+  };
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null;
+}
+
+function optionalNumber(value: unknown) {
+  return typeof value === 'number' && Number.isFinite(value) ? value : undefined;
+}
+
+function requiredNumber(value: unknown, field: string) {
+  if (typeof value !== 'number' || !Number.isFinite(value)) {
+    throw new Error(`The backup contains an invalid ${field}.`);
+  }
+
+  return value;
 }

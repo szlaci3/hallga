@@ -1,1 +1,1 @@
-{"root":["./src/app.tsx","./src/config.ts","./src/db.ts","./src/main.tsx","./src/types.ts","./src/hooks/usedocuments.ts","./src/pages/createpage.tsx","./src/pages/documentpage.tsx","./src/pages/homepage.tsx"],"version":"5.9.3"}
+{"root":["./src/app.tsx","./src/config.ts","./src/db.ts","./src/main.tsx","./src/types.ts","./src/hooks/usedocuments.ts","./src/pages/createpage.tsx","./src/pages/datapage.tsx","./src/pages/documentpage.tsx","./src/pages/homepage.tsx"],"version":"5.9.3"}

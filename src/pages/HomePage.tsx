@@ -1,6 +1,7 @@
 import {
   CheckSquare,
   ChevronRight,
+  Database,
   FileText,
   Folder,
   FolderPlus,
@@ -119,6 +120,9 @@ export function HomePage() {
           <h1 id="hallga-title">{currentFolder?.name ?? 'Documents'}</h1>
         </div>
         <div className="topbar-actions">
+          <Link className="icon-button" to="/data" aria-label="Open data page" title="Data">
+            <Database size={22} aria-hidden="true" />
+          </Link>
           <button className="icon-button" type="button" onClick={handleCreateFolder} aria-label="Create folder" title="Create folder">
             <FolderPlus size={22} aria-hidden="true" />
           </button>
