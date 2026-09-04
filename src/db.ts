@@ -45,10 +45,11 @@ export async function listFolders(parentId?: number) {
 }
 
 export async function createDocument(content: string, folderId?: number) {
+  const normalizedContent = normalizeDocumentContent(content);
   const now = Date.now();
   const id = await db.documents.add({
-    title: createTitle(content),
-    content: content.trim(),
+    title: createTitle(normalizedContent),
+    content: normalizedContent,
     createdAt: now,
     updatedAt: now,
     pinned: false,
@@ -60,9 +61,11 @@ export async function createDocument(content: string, folderId?: number) {
 }
 
 export async function updateDocument(id: number, content: string) {
+  const normalizedContent = normalizeDocumentContent(content);
+
   await db.documents.update(id, {
-    title: createTitle(content),
-    content: content.trim(),
+    title: createTitle(normalizedContent),
+    content: normalizedContent,
     updatedAt: Date.now(),
   });
 }
@@ -218,6 +221,25 @@ function createTitle(content: string) {
     .slice(0, 5);
 
   return words.length > 0 ? words.join(' ') : 'Untitled document';
+}
+
+function normalizeDocumentContent(content: string) {
+  const trimmedContent = content.trim();
+  const lines = trimmedContent.split(/\r?\n/);
+  const firstLine = lines[0] ?? '';
+  const secondLine = lines[1] ?? '';
+
+  if (!firstLine || looksLikeMarkdown(firstLine, secondLine)) {
+    return trimmedContent;
+  }
+
+  return `## ${trimmedContent}`;
+}
+
+function looksLikeMarkdown(firstLine: string, secondLine: string) {
+  return /^(?:\s{0,3}#{1,6}(?:\s|$)|\s{0,3}>|\s{0,3}(?:[-+*]|\d+[.)])\s+|\s*(```|~~~)|\s{0,3}(?:[-*_]\s*){3,}$|\s*(?:!?)\[|\s*\||\s*<\/?[a-z][^>]*>|\s*(?:\*\*|__|`|~~).+(?:\*\*|__|`|~~)\s*$|\s*(?:\*|_).+(?:\*|_)\s*$)/i.test(firstLine)
+    || /^(?:\s{0,3}(?:=+|-+)\s*)$/.test(secondLine)
+    || /^\s*\|?\s*:?-+:?\s*(?:\|\s*:?-+:?\s*)+\|?\s*$/.test(secondLine);
 }
 
 async function enforceDocumentLimit() {
