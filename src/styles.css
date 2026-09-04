@@ -581,10 +581,19 @@ select {
 
 .reader-page {
   max-width: 1180px;
+  --reader-header-height: 70px;
 }
 
 .reader-header {
+  position: sticky;
+  top: 0;
+  z-index: 20;
   margin-bottom: 16px;
+  padding: 8px 0;
+  background:
+    linear-gradient(180deg, rgb(8 7 6 / 0.98), rgb(8 7 6 / 0.9)),
+    rgb(8 7 6);
+  backdrop-filter: blur(18px);
 }
 
 .reader-layout {
@@ -596,8 +605,8 @@ select {
 
 .reader-toc {
   position: sticky;
-  top: 18px;
-  max-height: calc(100vh - 36px);
+  top: var(--reader-header-height);
+  max-height: calc(100vh - var(--reader-header-height) - 18px);
   overflow: auto;
   border: 1px solid var(--line-cool);
   border-radius: 8px;
@@ -693,7 +702,7 @@ select {
 .reader-content h4,
 .reader-content h5,
 .reader-content h6 {
-  scroll-margin-top: 20px;
+  scroll-margin-top: calc(var(--reader-header-height) + 20px);
 }
 
 .reader-content h2,
@@ -766,7 +775,7 @@ select {
   }
 
   .reader-page {
-    --reader-mobile-header-height: 62px;
+    --reader-header-height: 62px;
   }
 
   .topbar {
@@ -838,10 +847,10 @@ select {
 
   .reader-toc {
     position: sticky;
-    top: var(--reader-mobile-header-height);
+    top: var(--reader-header-height);
     z-index: 19;
     width: 100%;
-    max-height: calc(100vh - var(--reader-mobile-header-height) - 18px);
+    max-height: calc(100vh - var(--reader-header-height) - 18px);
     overflow: auto;
     padding: 0;
     background:
@@ -855,7 +864,7 @@ select {
   .reader-content h4,
   .reader-content h5,
   .reader-content h6 {
-    scroll-margin-top: calc(var(--reader-mobile-header-height) + 76px);
+    scroll-margin-top: calc(var(--reader-header-height) + 76px);
   }
 
   .toc-title-desktop,
